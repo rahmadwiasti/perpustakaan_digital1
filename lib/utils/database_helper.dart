@@ -1,39 +1,115 @@
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 
 class DatabaseHelper {
-  static const String _boxName = 'usersBox';
-  static late Box<Map> _usersBox;
+  static final DatabaseHelper instance = DatabaseHelper._internal();
+  factory DatabaseHelper() => instance;
+  DatabaseHelper._internal();
 
-  // Inisialisasi Hive
-  static Future<void> init() async {
-    await Hive.initFlutter();
-    if (!Hive.isBoxOpen(_boxName)) {
-      _usersBox = await Hive.openBox<Map>(_boxName);
+  static Database? _database;
+
+  Future<Database> get database async {
+    if (_database != null) return _database!;
+    _database = await _initDatabase();
+    return _database!;
+  }
+
+  Future<Database> _initDatabase() async {
+    String path = join(await getDatabasesPath(), 'app_database.db');
+    print('Database path: $path'); // Debugging path database
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        await db.execute('''
+          CREATE TABLE users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            email TEXT UNIQUE,
+            password TEXT
+          )
+        ''');
+      },
+    );
+  }
+
+  Future<void> saveUser(Map<String, dynamic> user) async {
+    final db = await database;
+
+    // Hash password sebelum menyimpan
+    if (user['password'] != null) {
+      user['password'] = _hashPassword(user['password']);
+    }
+
+    // Cek apakah email sudah ada
+    List<Map<String, dynamic>> existing = await db.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [user['email']],
+    );
+
+    if (existing.isEmpty) {
+      await db.insert('users', user, conflictAlgorithm: ConflictAlgorithm.replace);
     } else {
-      _usersBox = Hive.box<Map>(_boxName);
+      throw Exception('Email sudah terdaftar');
     }
   }
 
-  // Simpan pengguna baru
-  static Future<void> insertUser(String username, String email, String password) async {
-    final user = {
-      'username': username,
-      'email': email,
-      'password': password,
-    };
-    await _usersBox.add(user);
+  Future<Map<String, String>> verifyUser(String email, String password) async {
+    final db = await database;
+    final hashedPassword = _hashPassword(password);
+
+    // Cek apakah email ada
+    List<Map<String, dynamic>> emailResult = await db.query(
+      'users',
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+
+    if (emailResult.isEmpty) {
+      return {'status': 'not_registered', 'message': 'Akun belum terdaftar'};
+    }
+
+    // Cek apakah password cocok
+    List<Map<String, dynamic>> result = await db.query(
+      'users',
+      where: 'email = ? AND password = ?',
+      whereArgs: [email, hashedPassword],
+    );
+
+    if (result.isNotEmpty) {
+      return {'status': 'success', 'message': 'Login berhasil'};
+    } else {
+      return {'status': 'wrong_credentials', 'message': 'Email atau password salah'};
+    }
   }
 
-  // Verifikasi pengguna
-  static Future<bool> verifyUser(String email, String password) async {
-    final users = _usersBox.values.where((user) =>
-    user['email'] == email && user['password'] == password);
-    return users.isNotEmpty;
+  Future<Map<String, dynamic>?> getUser() async {
+    final db = await database;
+    List<Map<String, dynamic>> result = await db.query('users', limit: 1);
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
   }
 
-  // Bersihkan data (opsional, untuk testing)
-  static Future<void> clear() async {
-    await _usersBox.clear();
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    final db = await database;
+    List<Map<String, dynamic>> result = await db.query('users');
+    print('All users: $result'); // Debugging
+    return result;
+  }
+
+  Future<void> deleteUser() async {
+    final db = await database;
+    await db.delete('users');
+  }
+
+  String _hashPassword(String password) {
+    var bytes = utf8.encode(password);
+    var digest = sha256.convert(bytes);
+    return digest.toString();
   }
 }

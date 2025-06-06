@@ -8,6 +8,7 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   bool _notifications = true;
   double _fontSize = 16.0;
+  String _language = 'Indonesia';
 
   @override
   Widget build(BuildContext context) {
@@ -15,11 +16,11 @@ class _SettingScreenState extends State<SettingScreen> {
       appBar: AppBar(
         title: Text('Setting', style: TextStyle(color: Color(0xFF306944))),
         backgroundColor: Color(0xFF95bfa4),
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: ListView(
           children: [
             Text('Pengaturan Umum', style: TextStyle(fontSize: 20, color: Color(0xFF306944))),
             SwitchListTile(
@@ -48,15 +49,45 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
             ListTile(
               title: Text('Bahasa', style: TextStyle(color: Color(0xFF4a4a4a))),
-              subtitle: Text('Indonesia', style: TextStyle(color: Color(0xFF4a4a4a))),
+              subtitle: Text(_language, style: TextStyle(color: Color(0xFF4a4a4a))),
               onTap: () {
-                // Logika untuk mengganti bahasa
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Pilih Bahasa'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          title: Text('Indonesia'),
+                          onTap: () {
+                            setState(() => _language = 'Indonesia');
+                            Navigator.pop(context);
+                          },
+                        ),
+                        ListTile(
+                          title: Text('English'),
+                          onTap: () {
+                            setState(() => _language = 'English');
+                            Navigator.pop(context);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
             ),
+            SizedBox(height: 20),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF306944)), // Ganti primary dengan backgroundColor
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color(0xFF306944),
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+              ),
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Pengaturan Disimpan')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Pengaturan Disimpan')),
+                );
               },
               child: Text('Simpan', style: TextStyle(color: Colors.white)),
             ),

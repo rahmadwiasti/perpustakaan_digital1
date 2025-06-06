@@ -21,16 +21,18 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 16.0),
-                color: Color(0xFF95bfa4),
-                child: Column(
-                  children: [
-                    Icon(Icons.library_books, size: 100, color: Color(0xFF306944)),
-                    SizedBox(height: 16),
-                    Text('Masuk ke Perpustakaan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF306944))),
-                  ],
+              Icon(
+                Icons.library_books,
+                size: 100,
+                color: Color(0xFF306944),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Login Perpustakaan',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF306944),
                 ),
               ),
               SizedBox(height: 32),
@@ -40,40 +42,91 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     TextFormField(
                       controller: _emailController,
-                      decoration: InputDecoration(labelText: 'Email', labelStyle: TextStyle(color: Color(0xFF4a4a4a)), border: OutlineInputBorder(), prefixIcon: Icon(Icons.email, color: Color(0xFF306944))),
-                      validator: (value) => value!.isEmpty ? 'Masukkan email' : null,
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.email, color: Color(0xFF306944)),
+                      ),
+                      validator: (value) => value!.isEmpty || !value.contains('@') ? 'Masukkan email valid' : null,
                     ),
                     SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: InputDecoration(labelText: 'Password', labelStyle: TextStyle(color: Color(0xFF4a4a4a)), border: OutlineInputBorder(), prefixIcon: Icon(Icons.lock, color: Color(0xFF306944))),
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock, color: Color(0xFF306944)),
+                      ),
                       obscureText: true,
-                      validator: (value) => value!.isEmpty ? 'Masukkan password' : null,
+                      validator: (value) => value!.isEmpty || value.length < 6 ? 'Password minimal 6 karakter' : null,
                     ),
                     SizedBox(height: 24),
                     ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Color(0xFF306944), minimumSize: Size(double.infinity, 50), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF306944),
+                        minimumSize: Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
                       onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          bool isAuthenticated = await DatabaseHelper.verifyUser(_emailController.text, _passwordController.text);
-                          if (isAuthenticated) {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login Berhasil!'), backgroundColor: Color(0xFF306944), duration: Duration(seconds: 2)));
-                            Navigator.pushReplacementNamed(context, '/home');
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Email atau Password Salah'), backgroundColor: Colors.red));
+                          try {
+                            Map<String, String> result = await DatabaseHelper.instance.verifyUser(
+                              _emailController.text,
+                              _passwordController.text,
+                            );
+                            if (result['status'] == 'success') {
+                              Navigator.pushReplacementNamed(context, '/home');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(result['message']!),
+                                  backgroundColor: Color(0xFF306944),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(result['message']!),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            print('Login error: $e');
                           }
                         }
                       },
-                      child: Text('Login', style: TextStyle(fontSize: 18, color: Colors.white)),
+                      child: Text(
+                        'Masuk',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
                     ),
                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Belum punya akun? ', style: TextStyle(color: Color(0xFF4a4a4a))),
+                        Text(
+                          'Belum punya akun? ',
+                          style: TextStyle(color: Color(0xFF4a4a4a)),
+                        ),
                         GestureDetector(
-                          onTap: () => Navigator.pushNamed(context, '/register'),
-                          child: Text('Daftar di sini', style: TextStyle(color: Color(0xFF306944), fontWeight: FontWeight.bold)),
+                          onTap: () {
+                            Navigator.pushNamed(context, '/register');
+                          },
+                          child: Text(
+                            'Daftar di sini',
+                            style: TextStyle(
+                              color: Color(0xFF306944),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ],
                     ),

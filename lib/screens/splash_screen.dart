@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:perpustakaan_digital/screens/register_screen.dart'; // Impor RegisterScreen
+import 'package:perpustakaan_digital/utils/database_helper.dart';
+import 'dart:async';
 
-class SplashScreen extends StatefulWidget { // Ubah menjadi StatefulWidget
+class SplashScreen extends StatefulWidget {
   @override
   _SplashScreenState createState() => _SplashScreenState();
 }
@@ -10,32 +11,46 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Menunda selama 5 detik, lalu pindah ke RegisterScreen
-    Future.delayed(Duration(seconds: 5), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => RegisterScreen()),
-      );
+    _startSplashScreen();
+  }
+
+  void _startSplashScreen() {
+    Timer(Duration(seconds: 5), () async {
+      try {
+        final dbHelper = DatabaseHelper.instance; // Gunakan instance singleton
+        final user = await dbHelper.getUser();
+
+        if (!mounted) return; // Pastikan widget masih ada sebelum navigasi
+
+        if (user != null) {
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
+      } catch (e) {
+        print('Splash screen error: $e');
+        if (!mounted) return;
+        Navigator.pushReplacementNamed(context, '/login'); // Fallback ke login
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFF95bfa4),
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.library_books, size: 100, color: Color(0xFF306944)),
-            SizedBox(height: 20),
-            Text(
-              'PERPUSTAKAAN',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF306944),
-              ),
+            Icon(
+              Icons.library_books,
+              size: 100,
+              color: Color(0xFF306944),
+            ),
+            SizedBox(height: 16),
+            CircularProgressIndicator(
+              color: Color(0xFF306944),
             ),
           ],
         ),
