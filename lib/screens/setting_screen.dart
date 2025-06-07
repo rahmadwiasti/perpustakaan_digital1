@@ -24,7 +24,7 @@ class _SettingScreenState extends State<SettingScreen> {
           children: [
             Text('Pengaturan Umum', style: TextStyle(fontSize: 20, color: Color(0xFF306944))),
             SwitchListTile(
-              title: Text('Notifikasi', style: TextStyle(color: Color(0xFF4a4a4a))),
+              title: Text('Notifikasi', style: TextStyle(color: Color(0xFF4a4a4a), fontSize: _fontSize)),
               value: _notifications,
               onChanged: (value) {
                 setState(() {
@@ -34,7 +34,7 @@ class _SettingScreenState extends State<SettingScreen> {
               activeColor: Color(0xFF306944),
             ),
             ListTile(
-              title: Text('Ukuran Font', style: TextStyle(color: Color(0xFF4a4a4a))),
+              title: Text('Ukuran Font', style: TextStyle(color: Color(0xFF4a4a4a), fontSize: _fontSize)),
               subtitle: Slider(
                 value: _fontSize,
                 min: 12.0,
@@ -48,25 +48,25 @@ class _SettingScreenState extends State<SettingScreen> {
               ),
             ),
             ListTile(
-              title: Text('Bahasa', style: TextStyle(color: Color(0xFF4a4a4a))),
-              subtitle: Text(_language, style: TextStyle(color: Color(0xFF4a4a4a))),
+              title: Text('Bahasa', style: TextStyle(color: Color(0xFF4a4a4a), fontSize: _fontSize)),
+              subtitle: Text(_language, style: TextStyle(color: Color(0xFF4a4a4a), fontSize: _fontSize)),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: Text('Pilih Bahasa'),
+                    title: Text('Pilih Bahasa', style: TextStyle(fontSize: _fontSize)),
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ListTile(
-                          title: Text('Indonesia'),
+                          title: Text('Indonesia', style: TextStyle(fontSize: _fontSize)),
                           onTap: () {
                             setState(() => _language = 'Indonesia');
                             Navigator.pop(context);
                           },
                         ),
                         ListTile(
-                          title: Text('English'),
+                          title: Text('English', style: TextStyle(fontSize: _fontSize)),
                           onTap: () {
                             setState(() => _language = 'English');
                             Navigator.pop(context);
@@ -86,10 +86,10 @@ class _SettingScreenState extends State<SettingScreen> {
               ),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Pengaturan Disimpan')),
+                  SnackBar(content: Text('Pengaturan Disimpan', style: TextStyle(fontSize: _fontSize))),
                 );
               },
-              child: Text('Simpan', style: TextStyle(color: Colors.white)),
+              child: Text('Simpan', style: TextStyle(color: Colors.white, fontSize: _fontSize)),
             ),
           ],
         ),

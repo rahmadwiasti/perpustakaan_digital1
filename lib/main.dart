@@ -4,6 +4,8 @@ import 'package:perpustakaan_digital/screens/login_screen.dart';
 import 'package:perpustakaan_digital/screens/register_screen.dart';
 import 'package:perpustakaan_digital/screens/home_screen.dart';
 import 'package:perpustakaan_digital/screens/book_detail_screen.dart';
+import 'package:perpustakaan_digital/screens/profile_screen.dart';
+import 'package:perpustakaan_digital/screens/setting_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -24,6 +26,8 @@ class MyApp extends StatelessWidget {
           coverUrl: '',
           content: '',
         ),
+        '/profile': (context) => ProfileScreen(),
+        '/setting': (context) => SettingScreen(),
       },
     );
   }

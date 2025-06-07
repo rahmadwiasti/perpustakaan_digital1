@@ -107,6 +107,37 @@ class DatabaseHelper {
     await db.delete('users');
   }
 
+  Future<void> updateUser(String email, Map<String, dynamic> updates) async {
+    final db = await database;
+    try {
+      // Hash password jika ada di updates
+      if (updates['password'] != null) {
+        updates['password'] = _hashPassword(updates['password']);
+      }
+
+      // Pastikan email tidak diubah (karena unique constraint)
+      final existingUser = await db.query(
+        'users',
+        where: 'email = ?',
+        whereArgs: [email],
+      );
+
+      if (existingUser.isNotEmpty) {
+        await db.update(
+          'users',
+          updates,
+          where: 'email = ?',
+          whereArgs: [email],
+        );
+      } else {
+        throw Exception('Pengguna dengan email $email tidak ditemukan');
+      }
+    } catch (e) {
+      print('Error updating user: $e');
+      throw Exception('Gagal mengupdate pengguna: $e');
+    }
+  }
+
   String _hashPassword(String password) {
     var bytes = utf8.encode(password);
     var digest = sha256.convert(bytes);
